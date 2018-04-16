@@ -1,4 +1,4 @@
-/* X_Car test line */
+/* X_Car */
 /* Thuật toán dò đường đơn giản */
 
 /* Chân tín hiệu của 2 cảm biến dò đường */
@@ -18,13 +18,13 @@
 /* Chân PWM điều khiển tốc độ động cư phải */
 #define rightPWM 6
 
-int leftValue;
-int centerValue;
-int rightValue;
+int leftValue = 1;
+int centerValue = 1;
+int rightValue = 1;
 
-int preLeftValue;
-int preCenterValue;
-int preRightValue;
+int preLeftValue = 0;
+int preCenterValue = 0;
+int preRightValue = 0;
 
 void setup()
 {
@@ -41,29 +41,48 @@ void setup()
   pinMode(rightMotor1, OUTPUT);
   pinMode(rightMotor2, OUTPUT);
   pinMode(rightPWM, OUTPUT);
-
-  allMotor (100, 1, 110, 1);
-  delay (3000);
-  while (1)
-  {
-      if (digitalRead(centerLineSensor) == 1)
-      {
-        break;
-        stop();
-        delay (1000);
-      }
-  }
-  stop();
-  delay(1000);
-  
 }
 
 void loop()
 {
+  /* Đọc giá trị từ cảm biến dò đường */
+  int leftValue = !digitalRead(leftLineSensor);
+  int centerValue = !digitalRead(centerLineSensor);
+  int rightValue = !digitalRead(rightLineSensor);
+
+
+
+  /* Trường hợp cả 2 cảm biến ở vùng trắng 
+   -> robot nằm đúng theo vạch */
+  if (leftValue == 1 && centerValue == 0 && rightValue == 1)
+  {
+    /* Đi thẳng */
+    forward(145.5);
+  }
+  /* Trường hợp cảm biến trái ở vùng đen, cảm biến phải ở vùng trắng 
+   -> robot lệch trái */
+  else if (leftValue == 0 && centerValue == 1 && rightValue == 1 || leftValue == 0 && centerValue == 0 && rightValue == 1)
+  {
+    /* Rẽ trái */
+    turnLeft(100);
+  }
+  /* Trường hợp cảm biến trái ở vùng trắng, cảm biến phải ở vùng đen 
+   -> robot lệch phải */
+  else if (leftValue == 1 && centerValue == 1 && rightValue == 0 || leftValue == 1 && centerValue == 0 && rightValue == 0)
+  {
+    /* Rẽ phải */
+    turnRight(100);
+  }
+  /* Trường hợp cả 2 cảm biến ở vùng đen 
+   -> robot dừng lại */
+  else if (leftValue ==  0 && centerValue == 0 && rightValue == 0)
+  {
+    stop();
+  }
 }
 
 /* Hàm tiến thẳng
- * Tham số: giá trị PWM (0-100)
+ * Tham số: giá trị PWM (0-255)
  * Trả về: Không */
 void forward(int speed)
 {
@@ -81,7 +100,7 @@ void forward(int speed)
 }
 
 /* Hàm rẽ trái
- * Tham số: giá trị PWM của động cơ phải (0-100)
+ * Tham số: giá trị PWM của động cơ phải (0-255)
  * Trả về: Không */
 void turnLeft(int speed)
 {
@@ -97,7 +116,7 @@ void turnLeft(int speed)
 }
 
 /* Hàm rẽ phải
- * Tham số: giá trị PWM của động cơ trái (0-100)
+ * Tham số: giá trị PWM của động cơ trái (0-255)
  * Trả về: Không */
 void turnRight(int speed)
 {
@@ -111,71 +130,6 @@ void turnRight(int speed)
   digitalWrite(rightMotor2, LOW);
   analogWrite(rightPWM, 0);
 }
-
-
-void motorRight(float speed, int huong)
-{
-    if (huong == 0)
-    {
-        /* Động cơ phải quay lui*/
-        digitalWrite(rightMotor1, HIGH);
-        digitalWrite(rightMotor2, LOW);
-        analogWrite(rightPWM, speed);
-    }
-    else
-    {
-        /* Động cơ phải quay tiên */
-        digitalWrite(rightMotor1, LOW);
-        digitalWrite(rightMotor2, HIGH);
-        analogWrite(rightPWM, speed);
-    }
-}
-void motorLeft (float speed, int huong)
-{
-    if (huong == 0)
-    {
-        /* Động cơ trái quay lui */
-        digitalWrite(leftMotor1, HIGH);
-        digitalWrite(leftMotor2, LOW);
-        analogWrite(leftPWM, speed);
-    }
-    else
-    {
-        /* Động cơ trái quay tiên */
-        digitalWrite(leftMotor1, LOW);
-        digitalWrite(leftMotor2, HIGH);
-        analogWrite(leftPWM, speed);
-    }
-}
-
-void allMotor (float speedLeft,int huongtrai, float speedRight,int huongphai)
-{
-    if (huongtrai == 1)
-    {
-        digitalWrite(leftMotor1,0);
-        digitalWrite(leftMotor2,1);
-        analogWrite(leftPWM,speedLeft);
-    }
-    else
-    {
-        digitalWrite(leftMotor1,1);
-        digitalWrite(leftMotor2,0);
-        analogWrite(leftPWM,speedLeft);
-    }
-    if (huongphai == 1)
-    {
-        digitalWrite(rightMotor1,0);
-        digitalWrite(rightMotor2,1);
-        analogWrite(rightPWM,speedRight);
-    }
-    else
-    {
-        digitalWrite(rightMotor1,1);
-        digitalWrite(rightMotor2,0);
-        analogWrite(rightPWM,speedRight);
-    }  
-}
-
 
 void stop()
 {
